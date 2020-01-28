@@ -1,14 +1,15 @@
+use std::task::{Context, Poll};
 use actix_service::{Service, Transform};
 use actix_web::{Error, HttpResponse, 
     dev::{ServiceRequest, ServiceResponse},
 };
-use futures::{ Poll, future::{ok, Either, FutureResult}};
+use futures::future::{ok, Either, Ready};
 use crate::constants;
 use crate::{jwt, response};
 
 macro_rules! error_internal { 
     ($req: expr, $message: expr) => {
-        Either::B(ok($req.into_response(
+        Either::Right(ok($req.into_response(
             HttpResponse::InternalServerError()
                 .json(response::JsonError{code: 500, message: $message})
                 .into_body()
@@ -29,7 +30,7 @@ impl<S, B> Transform<S> for Authentication
     type Error = Error;
     type Transform = AuthenticationMiddleware<S>;
     type InitError = ();
-    type Future = FutureResult<Self::Transform, Self::InitError>;
+    type Future = Ready<Result<Self::Transform, Self::InitError>>;
     
     /// 生成校驗器
     fn new_transform(&self, service: S) -> Self::Future {
@@ -49,11 +50,11 @@ impl<S, B> Service for AuthenticationMiddleware<S>
     type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = Error;
-    type Future = Either<S::Future, FutureResult<Self::Response, Self::Error>>;
+    type Future = Either<S::Future, Ready<Result<Self::Response, Self::Error>>>;
     
     /// 異步處理
-    fn poll_ready(&mut self) -> Poll<(), Self::Error> {
-        self.service.poll_ready()
+    fn poll_ready(&mut self, ctx: &mut Context) -> Poll<Result<(), Self::Error>> {
+        self.service.poll_ready(ctx)
     }
 
     /// 調用校驗
@@ -71,7 +72,7 @@ impl<S, B> Service for AuthenticationMiddleware<S>
         let token = auth_str[6..auth_str.len()].trim();
         match jwt::decode(token) { 
             Ok(_) => { 
-                return Either::A(self.service.call(req));
+                return Either::Left(self.service.call(req));
             },
             Err(err) => { 
                 let err_msg = format!("解析Authorization失败({})", err);

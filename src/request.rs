@@ -1,9 +1,9 @@
 use actix_web::{HttpRequest};
-//use jsonwebtoken::{Validation};
-//use serde::de::DeserializeOwned;
+use jsonwebtoken::{Validation};
+use serde::de::DeserializeOwned;
 use curl::easy::Easy;
-//use crate::constants::{AUTHORIZATION, KEY};
-//use crate::jwt::UserToken;
+use crate::constants::{AUTHORIZATION, KEY};
+use crate::jwt::UserToken;
 use std::collections::HashMap;
 
 /// get the client ip address
@@ -13,32 +13,32 @@ pub fn get_ip(req: &HttpRequest) -> String {
 }
 
 /// 獲得token信息
-//pub fn get_token(req: &HttpRequest) -> UserToken {
-//    let headers = req.headers();
-//    let auth_string = headers.get(AUTHORIZATION).unwrap().to_str().unwrap();
-//    let auth_arr = auth_string.split(" ").collect::<Vec<&str>>();
-//    jsonwebtoken::decode::<UserToken>(auth_arr[1], &KEY, &Validation::default()).unwrap().claims
-//}
-//
+pub fn get_token(req: &HttpRequest) -> UserToken {
+    let headers = req.headers();
+    let auth_string = headers.get(AUTHORIZATION).unwrap().to_str().unwrap();
+    let auth_arr = auth_string.split(" ").collect::<Vec<&str>>();
+    jsonwebtoken::decode::<UserToken>(auth_arr[1], &KEY, &Validation::default()).unwrap().claims
+}
+
 ///// 檢測登錄信息
-//pub fn check_token(req: &HttpRequest) -> Option<UserToken> { 
-//    let headers = req.headers();
-//    let auth_string = match headers.get(AUTHORIZATION) { 
-//        Some(v) => { v.to_str().unwrap() },
-//        None => { return None; }
-//    };
-//    match jsonwebtoken::decode::<UserToken>(auth_string, &KEY, &Validation::default()) { 
-//        Ok(v) => { Some(v.claims) },
-//        Err(_) => { None }
-//    }
-//}
+pub fn check_token(req: &HttpRequest) -> Option<UserToken> { 
+    let headers = req.headers();
+    let auth_string = match headers.get(AUTHORIZATION) { 
+        Some(v) => { v.to_str().unwrap() },
+        None => { return None; }
+    };
+    match jsonwebtoken::decode::<UserToken>(auth_string, &KEY, &Validation::default()) { 
+        Ok(v) => { Some(v.claims) },
+        Err(_) => { None }
+    }
+}
 
 /// 獲得token信息
-//pub fn get_token_by<T: DeserializeOwned>(req: &HttpRequest, auth_key: &str, key: &[u8; 16]) -> T {
-//    let headers = req.headers();
-//    let auth_string = headers.get(auth_key).unwrap().to_str().unwrap();
-//    jsonwebtoken::decode::<T>(auth_string, key, &Validation::default()).unwrap().claims
-//}
+pub fn get_token_by<T: DeserializeOwned>(req: &HttpRequest, auth_key: &str, key: &[u8; 16]) -> T {
+    let headers = req.headers();
+    let auth_string = headers.get(auth_key).unwrap().to_str().unwrap();
+    jsonwebtoken::decode::<T>(auth_string, key, &Validation::default()).unwrap().claims
+}
 
 /// 从url地址得到網頁內容
 pub unsafe fn get_contents(url: &str) -> String {

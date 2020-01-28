@@ -23,7 +23,7 @@ pub mod cache;
 pub mod utils;
 pub mod datetime;
 pub mod validation;
-//pub mod jwt;
+pub mod jwt;
 pub mod cors;
 #[macro_use]
 pub mod tmpl;
@@ -39,7 +39,7 @@ pub mod query_builder;
 pub mod request;
 pub mod response;
 pub mod constants;
-//pub mod middlewares;
+pub mod middlewares;
 
 #[cfg(test)]
 mod tests {
